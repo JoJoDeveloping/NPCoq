@@ -1,0 +1,12 @@
+-Q . NP
+Utils.v
+Defs.v
+Transitions.v
+CCSComputations.v
+./equality/Context.v
+./equality/Bisimulation.v
+./equality/WeakBisimulation.v
+./equality/ObsCongruence.v
+./equality/Isomorphism.v
+./equality/Equalities.v
+./equality/Examples.v
