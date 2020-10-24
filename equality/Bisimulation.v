@@ -249,7 +249,7 @@ exists (fun a b => sum (a=b) (match a with Par a1 a2 => match b with Par b1 b2 =
     + exists (Par Q' P'). split. apply tSync with (invAction a). destruct a; easy. easy. rewrite invCancel. easy. now right.
 Defined.
 
-(* Further ideas: bisim_par_assoc, bisim_par_stop, bisim_par_distr ((a+b)|c = a|c + b|c), restrict_merge (a\b\c = a\(b and c)), restrict_choice_distr ((a+b)\H = a\H + b\H), ... *)
+(* Further ideas: bisim_par_assoc, bisim_par_stop, restrict_merge (a\b\c = a\(b and c)), restrict_choice_distr ((a+b)\H = a\H + b\H), ... *)
 
 End Laws.
 

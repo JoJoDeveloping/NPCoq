@@ -216,6 +216,49 @@ Proof.
 apply cwb_coarsest. apply obscong_cong. intros k1 s1. apply obscong_weakbisim.
 Defined.
 
+Section ChoiceCongruence. (*It's not actually provable that this is a congruence *)
+Definition ccg (k l : CCS) := forall R:CCS, weakbisimilar (CCSLTS G s0) (Choice k R) (Choice l R).
+
+Lemma ccg_weakbisim (k l : CCS) : ccg k l -> weakbisimilar (CCSLTS G s0) k l.
+Proof.
+intros cc. specialize (cc Stop).
+apply wbisim_trans with (Choice k Stop).
+apply bisim_wbisim, bisim_symm, bisim_choice_stop.
+apply wbisim_trans with (Choice l Stop).
+easy.
+apply bisim_wbisim, bisim_choice_stop.
+Defined.
+
+Lemma ccg_cong_prefix (k l : CCS) z : ccg k l -> ccg (Prefix z k) (Prefix z l).
+Proof.
+intros cc Q. destruct (ccg_weakbisim k l cc) as [R [Rkl wbR%weakbisim_strongattacker]].
+exists (fun a b => sum (sum (R a b) (a=b)) (prod (a = Choice (Prefix z k) Q) (b = Choice (Prefix z l) Q))). split.
+* now right.
+* apply weakbisim_strongattacker. intros a b y [[ab|aa]|[ac bc]]; split.
+  + intros a' aa'. destruct (wbR a b y ab) as [HL _]. destruct (HL a' aa') as [b' [bb' a'b']]. exists b'. split. easy. auto.
+  + intros b' bb'. destruct (wbR a b y ab) as [_ HR]. destruct (HR b' bb') as [a' [aa' a'b']]. exists a'. split. easy. auto.
+  + subst. intros a' aa'. exists a'. split. now apply weaken. auto.
+  + subst. intros a' aa'. exists a'. split. now apply weaken. auto.
+  + subst a b. intros a' aa'. inversion aa'; subst.
+    - inversion X; subst. exists l. split. apply weaken, tChoiceL, tPrefix. auto.
+    - exists a'. split. now apply weaken, tChoiceR. auto.
+  + subst a b. intros b' bb'. inversion bb'; subst.
+    - inversion X; subst. exists k. split. apply weaken, tChoiceL, tPrefix. auto.
+    - exists b'. split. now apply weaken, tChoiceR. auto.
+Defined.
+
+Lemma ccg_choice_left (k l : CCS) z : ccg k l -> ccg (Choice k z) (Choice l z).
+Proof.
+intros cc Q. pose proof (cc (Choice z Q)) as HzQ.
+apply wbisim_trans with (Choice k (Choice z Q)).
+apply wbisim_choice_assoc.
+apply wbisim_trans with (Choice l (Choice z Q)).
+easy.
+apply wbisim_symm, wbisim_choice_assoc.
+Defined.
+
+End ChoiceCongruence.
+
 (*
 Lemma cwb_obscong (k l : CCS) : cwb k l -> obscongruent (CCSLTS G s0) k l.
 Proof.

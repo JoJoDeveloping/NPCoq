@@ -17,6 +17,8 @@ Structure isomorphic (A B : LTS) : Type := {
   start_consistent : proj1 (f (start A) (start_reachable A)) = start B
 }.
 
+Definition sIsomorphic (A:LTS) (a b : states A) := isomorphic (changeStart A a) (changeStart A b).
+
 Section Equivalence.
 
 Lemma isomorphic_refl (A:LTS) : isomorphic A A.
@@ -56,7 +58,7 @@ End Equivalence.
 
 Section Comparsion.
 
-Lemma iso_bisim (A:LTS) (a b : states A) : isomorphic (changeStart A a) (changeStart A b) -> bisimilar A a b.
+Lemma iso_bisim (A:LTS) (a b : states A) : sIsomorphic A a b -> bisimilar A a b.
 Proof.
 intros iso. destruct iso.
 cbn in *.
@@ -76,3 +78,21 @@ split.
 Defined.
 
 End Comparsion.
+
+Section Laws.
+Variable G : nat -> CCS.
+Variable s0 : CCS.
+
+Lemma iso_choice_comm (P Q : CCS) : sIsomorphic (CCSLTS G s0) (Choice P Q) (Choice Q P).
+Proof.
+Admitted.
+
+Lemma iso_choice_assoc (P Q R : CCS) : sIsomorphic (CCSLTS G s0) (Choice (Choice P Q) R) (Choice P (Choice Q R)).
+Proof.
+Admitted.
+
+Lemma iso_choice_stop (P:CCS) : sIsomorphic (CCSLTS G s0) (Choice P Stop) P.
+Proof.
+Admitted.
+
+End Laws.

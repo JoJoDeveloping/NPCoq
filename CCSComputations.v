@@ -11,9 +11,9 @@ Lemma find {X:Type} {Y:X->Type} (A:kvstore X Y) (x:X) : x cel keys A -> Y x.
 intros H. destruct (elMapS sigLeft A x) as [[x' yx] [x'el xx']]. exact H.
 rewrite xx'. exact yx. Defined.
 
-Definition syntactic (p:CCS -> Type) :Type := (forall P Q, p(Par P Q) -> p P * p Q) * (forall P Q, p(Choice P Q) -> p P * p Q) * (forall P (H:actionFilter), p (Restrict P H) -> p P).
+Definition syntactic (p:CCS -> Prop) : Prop := (forall P Q, p(Par P Q) -> p P * p Q) * (forall P Q, p(Choice P Q) -> p P * p Q) * (forall P (H:actionFilter), p (Restrict P H) -> p P).
 
-Fixpoint guarded S :Type := match S with Prefix a P => True | Choice P Q => guarded P * guarded Q | Par P Q => guarded P * guarded Q | Restrict P _ => guarded P | Var _ => False | Stop => True end.
+Fixpoint guarded S :Prop := match S with Prefix a P => True | Choice P Q => guarded P * guarded Q | Par P Q => guarded P * guarded Q | Restrict P _ => guarded P | Var _ => False | Stop => True end.
 
 Lemma guardedSyntactic : syntactic guarded.
 split. 1:split; easy. easy. Defined.
@@ -21,7 +21,7 @@ split. 1:split; easy. easy. Defined.
 Lemma trueSyntactic : syntactic (fun _ => True).
 split. 1:split; easy. easy. Defined.
 
-Definition varHelper (G:nat->CCS) (p:CCS -> Type) := forall n:nat, p (Var n) -> {A:kvstore (action*CCS) (fun '(a,t) => trans G (Var n) a t) & forall a R, trans G (Var n) a R -> (a,R) cel keys A}.
+Definition varHelper (G:nat->CCS) (p:CCS -> Prop) := forall n:nat, p (Var n) -> {A:kvstore (action*CCS) (fun '(a,t) => trans G (Var n) a t) & forall a R, trans G (Var n) a R -> (a,R) cel keys A}.
 
 Fact helpSync1 (n:nat) : Snd n <> Tau. congruence. Defined.
 Fact helpSync2 (n:nat) : Rcv n <> Tau. congruence. Defined.
@@ -40,7 +40,7 @@ destruct k as [[[|n|n] T] trns].
   + exact [].
 Defined.
 
-Lemma transDeriv (G:nat->CCS) S (p:CCS -> Type) : syntactic p -> varHelper G p -> p S -> {A:kvstore (action*CCS) (fun '(a,T) => trans G S a T) & forall a T, trans G S a T -> (a,T) cel keys A}.
+Lemma transDeriv (G:nat->CCS) S (p:CCS -> Prop) : syntactic p -> varHelper G p -> p S -> {A:kvstore (action*CCS) (fun '(a,T) => trans G S a T) & forall a T, trans G S a T -> (a,T) cel keys A}.
 intros [[pPar pChoice] pRes] vH.
 induction S as [a P IH|P IHP Q IHQ|P IHP Q IHQ|P IH H|n|].
 * intros _. exists [existT _ (a, P) (tPrefix G a P)].
@@ -142,9 +142,6 @@ Fact gg : (forall n:nat, guarded(exampleGamma n)).
 now intros [|[|n]].
 Defined.
 
-Definition transis := (guardedGammaDeriv exampleGamma exampleCCS gg).
-
-(* Compute ((match transis with existT _ a _=>a end)). *)
 
 Definition CCSTransDecider {G:nat->CCS} {S:CCS} {a:action} {T:CCS} : (forall n, guarded (G n)) -> dec(trans G S a T).
 intros H. destruct (guardedGammaDeriv G S H) as [A cA].
@@ -176,5 +173,8 @@ exists (flatmap (fun '(s',a,t) => if edS s s' then [(a,t)] else []) B). intros a
 * intros [[[s' a']t'] [psat qsat]]%elFlatmapS. apply pB. destruct (edS s s') as [Heq|Hneq]. destruct qsat as [qsat|[]]. enough (a=a' /\ t=t') by congruence. split; congruence. exfalso. easy.
 * intros H. apply elFlatmap with ((s,a,t)). apply pB. easy. destruct (edS s s) as [Heq|[]]. now left. easy.
 Defined.
+
+
+Compute (proj1 (CCSTransLister exampleGamma Stop exampleCCS gg)).
 
 
