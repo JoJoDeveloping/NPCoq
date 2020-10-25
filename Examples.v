@@ -1,4 +1,4 @@
-From NP.equality Require Import Equalities.
+From NP Require Import equality.Equalities CCSComputations.
 
 Section example.
 Variable G : nat -> CCS.
@@ -29,3 +29,7 @@ Proof.
 Defined.
 
 End example.
+
+
+
+Compute (proj1 (CCSTransLister exampleGamma Stop exampleCCS gg)).

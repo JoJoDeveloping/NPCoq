@@ -175,6 +175,4 @@ exists (flatmap (fun '(s',a,t) => if edS s s' then [(a,t)] else []) B). intros a
 Defined.
 
 
-Compute (proj1 (CCSTransLister exampleGamma Stop exampleCCS gg)).
-
 

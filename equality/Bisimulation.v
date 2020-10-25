@@ -34,127 +34,6 @@ Defined.
 
 End Equivalence.
 
-
-Section Congruence.
-
-Variable G : nat -> CCS.
-Variable s0 : CCS.
-
-Lemma bisim_cong_prefix (r r' :CCS) (a:action) : bisimilar (CCSLTS G s0) r r' -> bisimilar (CCSLTS G s0) (Prefix a r) (Prefix a r').
-Proof.
-intros [R [Rrr' bR]].
-exists (fun k l => sum (R k l) (prod (k = Prefix a r) (l = Prefix a r'))). split.
-* right. now split.
-* intros k l b [Rkl|[eql eqr]].
-  + destruct (bR k l b Rkl) as [HL HR]. split.
-    - intros k' H. destruct (HL k' H) as [l' [ll' Rk'l']]. exists l'. split. easy. now left.
-    - intros l' H. destruct (HR l' H) as [k' [kk' Rk'l']]. exists k'. split. easy. now left.
-  + rewrite eql, eqr. split.
-    - intros k' H. cbn in H. inversion H. exists r'. split. cbn. apply tPrefix. left. congruence.
-    - intros l' H. cbn in H. inversion H. exists r.  split. cbn. apply tPrefix. left. congruence.
-Defined.
-
-Lemma bisim_cong_choice_l (r s r': CCS) : bisimilar (CCSLTS G s0) r r' -> bisimilar (CCSLTS G s0) (Choice r s) (Choice r' s).
-Proof.
-intros [R [Rrr' bR]].
-exists (fun k l => sum (R k l) (sum (k=l) (prod (k = Choice r s) (l = Choice r' s)))). split.
-* right. right. now split.
-* intros k l b [Rkl|[kel|[eql eqr]]].
-  + destruct (bR k l b Rkl) as [HL HR]. split.
-    - intros k' H. destruct (HL k' H) as [l' [ll' Rk'l']]. exists l'. split. easy. now left.
-    - intros l' H. destruct (HR l' H) as [k' [kk' Rk'l']]. exists k'. split. easy. now left.
-  + rewrite kel. split; intros k' H; exists k'; split; now try (right; left).
-  + rewrite eql, eqr. split.
-    - intros k' H. cbn in H. inversion H.
-      ++ destruct (bR r r' b Rrr') as [HL HR]. destruct (HL k' X) as [l' [r'l' k'l']]. exists l'. split. now apply tChoiceL. now left.
-      ++ exists k'. split. now apply tChoiceR. right. now left.
-    - intros l' H. cbn in H. inversion H.
-      ++ destruct (bR r r' b Rrr') as [HL HR]. destruct (HR l' X) as [k' [rk' k'l']]. exists k'. split. now apply tChoiceL. now left.
-      ++ exists l'. split. now apply tChoiceR. right. now left.
-Defined.
-
-Lemma bisim_cong_choice_r (r s r': CCS) : bisimilar (CCSLTS G s0) r r' -> bisimilar (CCSLTS G s0) (Choice s r) (Choice s r').
-Proof.
-intros [R [Rrr' bR]].
-exists (fun k l => sum (R k l) (sum (k=l) (prod (k = Choice s r) (l = Choice s r')))). split.
-* right. right. now split.
-* intros k l b [Rkl|[kel|[eql eqr]]].
-  + destruct (bR k l b Rkl) as [HL HR]. split.
-    - intros k' H. destruct (HL k' H) as [l' [ll' Rk'l']]. exists l'. split. easy. now left.
-    - intros l' H. destruct (HR l' H) as [k' [kk' Rk'l']]. exists k'. split. easy. now left.
-  + rewrite kel. split; intros k' H; exists k'; split; now try (right; left).
-  + rewrite eql, eqr. split.
-    - intros k' H. cbn in H. inversion H.
-      ++ exists k'. split. now apply tChoiceL. right. now left.
-      ++ destruct (bR r r' b Rrr') as [HL HR]. destruct (HL k' X) as [l' [r'l' k'l']]. exists l'. split. now apply tChoiceR. now left.
-    - intros l' H. cbn in H. inversion H.
-      ++ exists l'. split. now apply tChoiceL. right. now left.
-      ++ destruct (bR r r' b Rrr') as [HL HR]. destruct (HR l' X) as [k' [rk' k'l']]. exists k'. split. now apply tChoiceR. now left.
-Defined.
-
-Lemma bisim_cong_par_l (r s r' : CCS) : bisimilar (CCSLTS G s0) r r' -> bisimilar (CCSLTS G s0) (Par r s) (Par r' s).
-Proof.
-intros [R [Rrr' bR]].
-exists (fun k l => match (k,l) with (Par k1 k2, Par l1 l2) => prod (R k1 l1) (k2 = l2) | _ => False:Type end). split. split.
-* easy.
-* easy.
-* intros k l b. refine (match k with Par k1 k2 => match l with Par l1 l2 => (fun '(Rk1k2, l1l2) => _) | _ => _ end | _ => _ end); try easy. cbn. split.
-  - intros k' H. inversion H.
-    ++ destruct (bR k1 l1 b) as [HL HR]. easy. destruct (HL P' X) as [l'1 [l1l'1 P'l'1]]. exists (Par l'1 l2). split. now apply tParL. split. easy. easy.
-    ++ exists (Par l1 Q'). split. apply tParR. congruence. now split.
-    ++ destruct (bR k1 l1 a) as [HL HR]. easy. destruct (HL P' X) as [l'1 [l1l'1 P'l'1]]. exists (Par l'1 Q'). split. apply tSync with a. easy. easy. congruence. split. easy. easy.
-  - intros l' H. inversion H.
-    ++ destruct (bR k1 l1 b) as [HL HR]. easy. destruct (HR P' X) as [k'1 [k1k'1 P'k'1]]. exists (Par k'1 k2). split. now apply tParL. split. easy. easy.
-    ++ exists (Par k1 Q'). split. apply tParR. congruence. now split.
-    ++ destruct (bR k1 l1 a) as [HL HR]. easy. destruct (HR P' X) as [k'1 [k1k'1 P'k'1]]. exists (Par k'1 Q'). split. apply tSync with a. easy. easy. congruence. now easy.
-Defined.
-
-Lemma bisim_cong_par_r (r s r' : CCS) : bisimilar (CCSLTS G s0) r r' -> bisimilar (CCSLTS G s0) (Par s r) (Par s r').
-Proof.
-intros [R [Rrr' bR]].
-exists (fun k l => match (k,l) with (Par k1 k2, Par l1 l2) => prod (R k2 l2) (k1 = l1) | _ => False:Type end). split. split.
-* easy.
-* easy.
-* intros k l b. refine (match k with Par k1 k2 => match l with Par l1 l2 => (fun '(Rl1l2, k1k2) => _) | _ => _ end | _ => _ end); try easy. cbn. split.
-  - intros k' H. inversion H.
-    ++ exists (Par P' l2). split. apply tParL. congruence. now split.
-    ++ destruct (bR k2 l2 b) as [HL HR]. easy. destruct (HL Q' X) as [l'2 [l2l'2 Q'l'2]]. exists (Par l1 l'2). split. now apply tParR. split. easy. easy.
-    ++ destruct (bR k2 l2 (invAction a)) as [HL HR]. easy. destruct (HL Q' X0) as [l'2 [l2l'2 Q'l'2]]. exists (Par P' l'2). split. apply tSync with a. easy. congruence. easy. split. easy. easy.
-  - intros l' H. inversion H.
-    ++ exists (Par P' k2). split. apply tParL. congruence. now split.
-    ++ destruct (bR k2 l2 b) as [HL HR]. easy. destruct (HR Q' X) as [k'2 [k2k'2 Q'k'2]]. exists (Par k1 k'2). split. now apply tParR. split. easy. easy.
-    ++ destruct (bR k2 l2 (invAction a)) as [HL HR]. easy. destruct (HR Q' X0) as [k'2 [k2k'2 Q'k'2]]. exists (Par P' k'2). split. apply tSync with a. easy. congruence. easy. split. easy. easy.
-Defined.
-
-Lemma bisim_cong_restrict (r r' : CCS) (H:actionFilter) : bisimilar (CCSLTS G s0) r r' -> bisimilar (CCSLTS G s0) (Restrict r H) (Restrict r' H).
-Proof.
-intros [R [Rrr' bR]].
-exists (fun k l => match (k,l) with (Restrict k1 H1, Restrict l1 H2) => prod (R k1 l1) (H1=H2) | _ => False:Type end). split. split.
-* easy.
-* easy.
-* intros k l b. refine (match k with Restrict k1 H1 => match l with Restrict l1 H2 => (fun '(Rk1l1, H1H2) => _) | _ => _ end | _ => _ end); try easy. cbn. split.
-  - intros k' Hk. inversion Hk.
-    destruct (bR k1 l1 b) as [HL HR]. easy. destruct (HL P' X0) as [l1' [l1l1' P'l1']]. exists (Restrict l1' H2). split. apply tRes. congruence. easy. easy.
-  - intros l' Hl. inversion Hl.
-    destruct (bR k1 l1 b) as [HL HR]. easy. destruct (HR P' X0) as [k1' [k1k1' P'k1']]. exists (Restrict k1' H1). split. apply tRes. congruence. easy. easy.
-Defined.
-
-Lemma bisim_cong : congruence (bisimilar (CCSLTS G s0)).
-Proof.
-intros p q c b. induction c as [|a c IH|c IH r|l c IH|c IH r|l c IH|c IH H].
-* easy.
-* now apply bisim_cong_prefix.
-* now apply bisim_cong_choice_l.
-* now apply bisim_cong_choice_r.
-* now apply bisim_cong_par_l.
-* now apply bisim_cong_par_r.
-* now apply bisim_cong_restrict.
-Defined.
-
-End Congruence.
-
-
-
 Section Laws.
 Variable G : nat -> CCS.
 Variable s0 : CCS.
@@ -252,5 +131,108 @@ Defined.
 (* Further ideas: bisim_par_assoc, bisim_par_stop, restrict_merge (a\b\c = a\(b and c)), restrict_choice_distr ((a+b)\H = a\H + b\H), ... *)
 
 End Laws.
+
+Section Congruence.
+
+Variable G : nat -> CCS.
+Variable s0 : CCS.
+
+Lemma bisim_cong_prefix (r r' :CCS) (a:action) : bisimilar (CCSLTS G s0) r r' -> bisimilar (CCSLTS G s0) (Prefix a r) (Prefix a r').
+Proof.
+intros [R [Rrr' bR]].
+exists (fun k l => sum (R k l) (prod (k = Prefix a r) (l = Prefix a r'))). split.
+* right. now split.
+* intros k l b [Rkl|[eql eqr]].
+  + destruct (bR k l b Rkl) as [HL HR]. split.
+    - intros k' H. destruct (HL k' H) as [l' [ll' Rk'l']]. exists l'. split. easy. now left.
+    - intros l' H. destruct (HR l' H) as [k' [kk' Rk'l']]. exists k'. split. easy. now left.
+  + rewrite eql, eqr. split.
+    - intros k' H. cbn in H. inversion H. exists r'. split. cbn. apply tPrefix. left. congruence.
+    - intros l' H. cbn in H. inversion H. exists r.  split. cbn. apply tPrefix. left. congruence.
+Defined.
+
+Lemma bisim_cong_choice_l (r s r': CCS) : bisimilar (CCSLTS G s0) r r' -> bisimilar (CCSLTS G s0) (Choice r s) (Choice r' s).
+Proof.
+intros [R [Rrr' bR]].
+exists (fun k l => sum (R k l) (sum (k=l) (prod (k = Choice r s) (l = Choice r' s)))). split.
+* right. right. now split.
+* intros k l b [Rkl|[kel|[eql eqr]]].
+  + destruct (bR k l b Rkl) as [HL HR]. split.
+    - intros k' H. destruct (HL k' H) as [l' [ll' Rk'l']]. exists l'. split. easy. now left.
+    - intros l' H. destruct (HR l' H) as [k' [kk' Rk'l']]. exists k'. split. easy. now left.
+  + rewrite kel. split; intros k' H; exists k'; split; now try (right; left).
+  + rewrite eql, eqr. split.
+    - intros k' H. cbn in H. inversion H.
+      ++ destruct (bR r r' b Rrr') as [HL HR]. destruct (HL k' X) as [l' [r'l' k'l']]. exists l'. split. now apply tChoiceL. now left.
+      ++ exists k'. split. now apply tChoiceR. right. now left.
+    - intros l' H. cbn in H. inversion H.
+      ++ destruct (bR r r' b Rrr') as [HL HR]. destruct (HR l' X) as [k' [rk' k'l']]. exists k'. split. now apply tChoiceL. now left.
+      ++ exists l'. split. now apply tChoiceR. right. now left.
+Defined.
+
+Lemma bisim_cong_choice_r (r s r': CCS) : bisimilar (CCSLTS G s0) r r' -> bisimilar (CCSLTS G s0) (Choice s r) (Choice s r').
+Proof.
+intros H.
+apply bisim_trans with (Choice r s).
+apply bisim_choice_comm.
+apply bisim_trans with (Choice r' s).
+now apply bisim_cong_choice_l.
+apply bisim_choice_comm.
+Defined.
+
+Lemma bisim_cong_par_l (r s r' : CCS) : bisimilar (CCSLTS G s0) r r' -> bisimilar (CCSLTS G s0) (Par r s) (Par r' s).
+Proof.
+intros [R [Rrr' bR]].
+exists (fun k l => match (k,l) with (Par k1 k2, Par l1 l2) => prod (R k1 l1) (k2 = l2) | _ => False:Type end). split. split.
+* easy.
+* easy.
+* intros k l b. refine (match k with Par k1 k2 => match l with Par l1 l2 => (fun '(Rk1k2, l1l2) => _) | _ => _ end | _ => _ end); try easy. cbn. split.
+  - intros k' H. inversion H.
+    ++ destruct (bR k1 l1 b) as [HL HR]. easy. destruct (HL P' X) as [l'1 [l1l'1 P'l'1]]. exists (Par l'1 l2). split. now apply tParL. split. easy. easy.
+    ++ exists (Par l1 Q'). split. apply tParR. congruence. now split.
+    ++ destruct (bR k1 l1 a) as [HL HR]. easy. destruct (HL P' X) as [l'1 [l1l'1 P'l'1]]. exists (Par l'1 Q'). split. apply tSync with a. easy. easy. congruence. split. easy. easy.
+  - intros l' H. inversion H.
+    ++ destruct (bR k1 l1 b) as [HL HR]. easy. destruct (HR P' X) as [k'1 [k1k'1 P'k'1]]. exists (Par k'1 k2). split. now apply tParL. split. easy. easy.
+    ++ exists (Par k1 Q'). split. apply tParR. congruence. now split.
+    ++ destruct (bR k1 l1 a) as [HL HR]. easy. destruct (HR P' X) as [k'1 [k1k'1 P'k'1]]. exists (Par k'1 Q'). split. apply tSync with a. easy. easy. congruence. now easy.
+Defined.
+
+Lemma bisim_cong_par_r (r s r' : CCS) : bisimilar (CCSLTS G s0) r r' -> bisimilar (CCSLTS G s0) (Par s r) (Par s r').
+Proof.
+intros H.
+apply bisim_trans with (Par r s).
+apply bisim_par_comm.
+apply bisim_trans with (Par r' s).
+now apply bisim_cong_par_l.
+apply bisim_par_comm.
+Defined.
+
+Lemma bisim_cong_restrict (r r' : CCS) (H:actionFilter) : bisimilar (CCSLTS G s0) r r' -> bisimilar (CCSLTS G s0) (Restrict r H) (Restrict r' H).
+Proof.
+intros [R [Rrr' bR]].
+exists (fun k l => match (k,l) with (Restrict k1 H1, Restrict l1 H2) => prod (R k1 l1) (H1=H2) | _ => False:Type end). split. split.
+* easy.
+* easy.
+* intros k l b. refine (match k with Restrict k1 H1 => match l with Restrict l1 H2 => (fun '(Rk1l1, H1H2) => _) | _ => _ end | _ => _ end); try easy. cbn. split.
+  - intros k' Hk. inversion Hk.
+    destruct (bR k1 l1 b) as [HL HR]. easy. destruct (HL P' X0) as [l1' [l1l1' P'l1']]. exists (Restrict l1' H2). split. apply tRes. congruence. easy. easy.
+  - intros l' Hl. inversion Hl.
+    destruct (bR k1 l1 b) as [HL HR]. easy. destruct (HR P' X0) as [k1' [k1k1' P'k1']]. exists (Restrict k1' H1). split. apply tRes. congruence. easy. easy.
+Defined.
+
+Lemma bisim_cong : congruence (bisimilar (CCSLTS G s0)).
+Proof.
+intros p q c b. induction c as [|a c IH|c IH r|l c IH|c IH r|l c IH|c IH H].
+* easy.
+* now apply bisim_cong_prefix.
+* now apply bisim_cong_choice_l.
+* now apply bisim_cong_choice_r.
+* now apply bisim_cong_par_l.
+* now apply bisim_cong_par_r.
+* now apply bisim_cong_restrict.
+Defined.
+
+End Congruence.
+
 
 

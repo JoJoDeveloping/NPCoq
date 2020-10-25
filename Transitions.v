@@ -57,3 +57,55 @@ induction pab as [|z pab IH] in a,pab|-*; intros k l.
 * cbn. rewrite k. easy.
 * cbn. destruct k as [s [ps1 ps2]]. exists s. split. easy. now eapply IH.
 Defined. 
+
+Section Transport.
+
+Variable G : nat -> CCS.
+Variable s0 : CCS.
+
+Lemma ttrans_par_l_transport (s s' t : CCS) : ttrans (CCSLTS G s0) s s' -> ttrans (CCSLTS G s0) (Par s t) (Par s' t).
+Proof.
+intros [n H]. exists n. induction n as [|n IH] in s,H|-*.
+* congruence.
+* cbn. destruct H as [s1 [HL HR]]. exists (Par s1 t). split. apply tParL. easy. apply IH. easy.
+Defined.
+
+Lemma wtrans_par_l_transport (s s' t : CCS) (a:action) : iswtrans (CCSLTS G s0) s a s' -> iswtrans (CCSLTS G s0) (Par s t) a (Par s' t).
+Proof.
+destruct a as [|c|c]; cbn.
+- apply ttrans_par_l_transport.
+- intros [s1 [s2 [[ss1 s1s2] s2s']]]. exists (Par s1 t), (Par s2 t). split. split. 1, 3: now apply ttrans_par_l_transport. now apply tParL.
+- intros [s1 [s2 [[ss1 s1s2] s2s']]]. exists (Par s1 t), (Par s2 t). split. split. 1, 3: now apply ttrans_par_l_transport. now apply tParL.
+Defined.
+
+Lemma ttrans_par_r_transport (s s' t : CCS) : ttrans (CCSLTS G s0) s s' -> ttrans (CCSLTS G s0) (Par t s) (Par t s').
+Proof.
+intros [n H]. exists n. induction n as [|n IH] in s,H|-*.
+* congruence.
+* cbn. destruct H as [s1 [HL HR]]. exists (Par t s1). split. apply tParR. easy. apply IH. easy.
+Defined.
+
+Lemma wtrans_par_r_transport (s s' t : CCS) (a:action) : iswtrans (CCSLTS G s0) s a s' -> iswtrans (CCSLTS G s0) (Par t s) a (Par t s').
+Proof.
+destruct a as [|c|c]; cbn.
+- apply ttrans_par_r_transport.
+- intros [s1 [s2 [[ss1 s1s2] s2s']]]. exists (Par t s1), (Par t s2). split. split. 1, 3: now apply ttrans_par_r_transport. now apply tParR.
+- intros [s1 [s2 [[ss1 s1s2] s2s']]]. exists (Par t s1), (Par t s2). split. split. 1, 3: now apply ttrans_par_r_transport. now apply tParR.
+Defined.
+
+Lemma ttrans_restrict_transport (s s' : CCS) (H:actionFilter) : ttrans (CCSLTS G s0) s s' -> ttrans (CCSLTS G s0) (Restrict s H) (Restrict s' H).
+Proof.
+intros [n HH]. exists n. induction n as [|n IH] in s,HH|-*.
+* congruence.
+* cbn. destruct HH as [s1 [HL HR]]. exists (Restrict s1 H). split. apply tRes. easy. easy. apply IH. easy.
+Defined.
+
+Lemma wtrans_restrict_transport (s s': CCS) (a:action) (H:actionFilter) : admits H a -> iswtrans (CCSLTS G s0) s a s' -> iswtrans (CCSLTS G s0) (Restrict s H) a (Restrict s' H).
+Proof.
+intros aH. destruct a as [|c|c]; cbn.
+- apply ttrans_restrict_transport.
+- intros [s1 [s2 [[ss1 s1s2] s2s']]]. exists (Restrict s1 H), (Restrict s2 H). split. split. 1, 3: now apply ttrans_restrict_transport. now apply tRes.
+- intros [s1 [s2 [[ss1 s1s2] s2s']]]. exists (Restrict s1 H), (Restrict s2 H). split. split. 1, 3: now apply ttrans_restrict_transport. now apply tRes.
+Defined.
+
+End Transport.

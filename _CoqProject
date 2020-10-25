@@ -9,4 +9,4 @@ CCSComputations.v
 ./equality/ObsCongruence.v
 ./equality/Isomorphism.v
 ./equality/Equalities.v
-./equality/Examples.v
+Examples.v
